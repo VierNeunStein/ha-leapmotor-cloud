@@ -14,11 +14,20 @@ optimise charging.
 > Leapmotor offers no public API; the integration talks to the same cloud as the app and may
 > stop working when Leapmotor changes it. Use it at your own risk.
 
-![Vehicle card](docs/images/vehicle-card.png)
+*Screenshots with a real Leapmotor B10. The car is shown with the app's own pictures, in its
+real colour.*
 
-| | |
+![Vehicle card](docs/images/vehicle.png)
+
+Open doors, tailgate and the charging cable are shown like in the app:
+
+![Doors open and charging cable plugged in](docs/images/doors-open-plugged-in.png)
+
+![Charging and climate cards](docs/images/charging-climate.png)
+
+| Status | Statistics |
 |---|---|
-| ![Charging and climate cards](docs/images/charging-climate-dark.png) | ![Status and statistics cards](docs/images/status-statistics.png) |
+| ![Status card](docs/images/status.png) | ![Statistics card](docs/images/statistics.png) |
 
 ## Features
 

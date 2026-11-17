@@ -10,11 +10,20 @@ man zum Optimieren des Ladens braucht.
 > keine öffentliche Schnittstelle; die Integration nutzt dieselbe Cloud wie die App und kann
 > aufhören zu funktionieren, wenn Leapmotor sie ändert. Nutzung auf eigene Gefahr.
 
-![Fahrzeugkarte](docs/images/vehicle-card.png)
+*Screenshots mit einem echten Leapmotor B10. Das Auto wird mit den Bildern aus der App
+angezeigt, in seiner echten Farbe.*
 
-| | |
+![Fahrzeugkarte](docs/images/vehicle.png)
+
+Offene Türen, Heckklappe und das Ladekabel werden wie in der App angezeigt:
+
+![Türen offen und Ladekabel eingesteckt](docs/images/doors-open-plugged-in.png)
+
+![Laden und Klima](docs/images/charging-climate.png)
+
+| Status | Statistik |
 |---|---|
-| ![Laden und Klima](docs/images/charging-climate-dark.png) | ![Status und Statistik](docs/images/status-statistics.png) |
+| ![Statuskarte](docs/images/status.png) | ![Statistikkarte](docs/images/statistics.png) |
 
 ## Funktionen
 
