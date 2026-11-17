@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import asyncio
 import base64
 from collections.abc import AsyncIterator
+import ssl
 from unittest.mock import MagicMock
 
 from homeassistant.config_entries import ConfigEntryState
@@ -25,7 +27,21 @@ from .conftest import entity_id, unload
 
 
 @pytest.fixture
-async def cloud(socket_enabled: None) -> AsyncIterator[MockCloud]:
+async def cloud(hass: HomeAssistant, socket_enabled: None) -> AsyncIterator[MockCloud]:
+    # The certificate probe closes its connection right after the handshake; on
+    # Linux the stand-in server reports that as a reset. It is not an error.
+    loop = asyncio.get_running_loop()
+    previous = loop.get_exception_handler()
+
+    def ignore_resets(loop: asyncio.AbstractEventLoop, context: dict) -> None:
+        if isinstance(context.get("exception"), (ConnectionResetError, ssl.SSLError)):
+            return
+        if previous is not None:
+            previous(loop, context)
+        else:
+            loop.default_exception_handler(context)
+
+    loop.set_exception_handler(ignore_resets)
     server = MockCloud()
     await server.start()
     yield server
