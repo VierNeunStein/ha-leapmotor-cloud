@@ -1,0 +1,14 @@
+{
+  "domain": "leapmotor_cloud",
+  "name": "Leapmotor Cloud",
+  "codeowners": ["@VierNeunStein"],
+  "config_flow": true,
+  "dependencies": ["file_upload", "frontend", "http"],
+  "documentation": "https://github.com/VierNeunStein/ha-leapmotor-cloud",
+  "integration_type": "hub",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/VierNeunStein/ha-leapmotor-cloud/issues",
+  "loggers": ["custom_components.leapmotor_cloud"],
+  "requirements": [],
+  "version": "1.0.0"
+}

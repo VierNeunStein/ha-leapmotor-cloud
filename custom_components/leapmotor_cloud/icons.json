@@ -1,0 +1,155 @@
+{
+  "entity": {
+    "binary_sensor": {
+      "plugged_in": { "default": "mdi:power-plug-off-outline", "state": { "on": "mdi:ev-plug-type2" } },
+      "charging": { "default": "mdi:battery-outline", "state": { "on": "mdi:battery-charging" } },
+      "charge_completed": { "default": "mdi:battery-clock-outline", "state": { "on": "mdi:battery-check" } },
+      "driving": { "default": "mdi:car-brake-parking", "state": { "on": "mdi:car-speed-limiter" } },
+      "doors": { "default": "mdi:car-door", "state": { "on": "mdi:car-door-lock-open" } },
+      "trunk": { "default": "mdi:car-back", "state": { "on": "mdi:car-back" } },
+      "windows": { "default": "mdi:car-door", "state": { "on": "mdi:window-open-variant" } },
+      "climate_active": { "default": "mdi:fan-off", "state": { "on": "mdi:fan" } },
+      "defrost": { "default": "mdi:car-defrost-front", "state": { "on": "mdi:car-defrost-front" } },
+      "rear_window_heating": { "default": "mdi:car-defrost-rear" },
+      "battery_heating": { "default": "mdi:battery-heart-outline", "state": { "on": "mdi:heat-wave" } },
+      "tire_warning": { "default": "mdi:car-tire-alert" },
+      "vehicle_ready": { "default": "mdi:car-off", "state": { "on": "mdi:car-key" } },
+      "parking_brake": { "default": "mdi:car-brake-parking" },
+      "alarm_armed": { "default": "mdi:shield-off-outline", "state": { "on": "mdi:shield-car" } },
+      "cloud_connection": { "default": "mdi:cloud-off-outline", "state": { "on": "mdi:cloud-check-outline" } }
+    },
+    "button": {
+      "refresh": { "default": "mdi:cloud-refresh-outline" },
+      "find_vehicle": { "default": "mdi:car-search" },
+      "unlock_charger": { "default": "mdi:ev-plug-type2" },
+      "quick_cool": { "default": "mdi:snowflake" },
+      "quick_heat": { "default": "mdi:fire" },
+      "windshield_defrost": { "default": "mdi:car-defrost-front" }
+    },
+    "climate": {
+      "climate": {
+        "default": "mdi:air-conditioner",
+        "state_attributes": {
+          "preset_mode": {
+            "default": "mdi:tune-variant",
+            "state": {
+              "quick_cool": "mdi:snowflake",
+              "quick_heat": "mdi:fire",
+              "defrost": "mdi:car-defrost-front"
+            }
+          }
+        }
+      }
+    },
+    "cover": {
+      "windows": { "default": "mdi:window-closed-variant", "state": { "open": "mdi:window-open-variant" } },
+      "sunshade": { "default": "mdi:roller-shade" },
+      "trunk": { "default": "mdi:car-back" }
+    },
+    "device_tracker": {
+      "location": { "default": "mdi:car-connected" }
+    },
+    "image": {
+      "picture": { "default": "mdi:car-side" }
+    },
+    "lock": {
+      "lock": { "default": "mdi:car-key", "state": { "locked": "mdi:car-door-lock", "unlocked": "mdi:car-door-lock-open" } }
+    },
+    "number": {
+      "charge_limit": { "default": "mdi:battery-arrow-up-outline" },
+      "battery_capacity": { "default": "mdi:car-battery" }
+    },
+    "select": {
+      "seat_heat_driver": { "default": "mdi:car-seat-heater", "state": { "off": "mdi:car-seat" } },
+      "seat_heat_passenger": { "default": "mdi:car-seat-heater", "state": { "off": "mdi:car-seat" } },
+      "seat_ventilation_driver": { "default": "mdi:car-seat-cooler", "state": { "off": "mdi:car-seat" } },
+      "seat_ventilation_passenger": { "default": "mdi:car-seat-cooler", "state": { "off": "mdi:car-seat" } },
+      "demo_scenario": { "default": "mdi:movie-open-play-outline" }
+    },
+    "sensor": {
+      "soc": { "default": "mdi:battery-high" },
+      "range": { "default": "mdi:map-marker-distance" },
+      "range_max": { "default": "mdi:map-marker-distance" },
+      "charging_state": {
+        "default": "mdi:ev-station",
+        "state": {
+          "unplugged": "mdi:power-plug-off-outline",
+          "plugged_in": "mdi:ev-plug-type2",
+          "scheduled": "mdi:timer-sand",
+          "charging": "mdi:battery-charging-high",
+          "paused": "mdi:pause-circle-outline",
+          "finished": "mdi:battery-check"
+        }
+      },
+      "charging_power": { "default": "mdi:lightning-bolt" },
+      "battery_power": { "default": "mdi:flash-triangle-outline" },
+      "battery_current": { "default": "mdi:current-dc" },
+      "battery_voltage": { "default": "mdi:sine-wave" },
+      "charge_time_remaining": { "default": "mdi:timer-outline" },
+      "charge_finish_time": { "default": "mdi:clock-end" },
+      "energy_to_limit": { "default": "mdi:battery-arrow-up" },
+      "battery_energy": { "default": "mdi:car-battery" },
+      "battery_temperature": { "default": "mdi:thermometer" },
+      "odometer": { "default": "mdi:counter" },
+      "speed": { "default": "mdi:speedometer" },
+      "gear": { "default": "mdi:car-shift-pattern" },
+      "fuel_level": { "default": "mdi:gas-station" },
+      "fuel_range": { "default": "mdi:gas-station-outline" },
+      "combined_range": { "default": "mdi:map-marker-path" },
+      "interior_temperature": { "default": "mdi:car-thermometer" },
+      "outdoor_temperature": { "default": "mdi:thermometer" },
+      "tire_pressure_fl": { "default": "mdi:car-tire-alert" },
+      "tire_pressure_fr": { "default": "mdi:car-tire-alert" },
+      "tire_pressure_rl": { "default": "mdi:car-tire-alert" },
+      "tire_pressure_rr": { "default": "mdi:car-tire-alert" },
+      "energy_today": { "default": "mdi:lightning-bolt-circle" },
+      "energy_last_week": { "default": "mdi:calendar-week" },
+      "total_energy": { "default": "mdi:sigma" },
+      "mileage_7d": { "default": "mdi:road-variant" },
+      "energy_7d": { "default": "mdi:chart-bar" },
+      "consumption_average": { "default": "mdi:gauge" },
+      "last_charge_energy": { "default": "mdi:ev-station" },
+      "last_charge_end": { "default": "mdi:history" },
+      "delivery_days": { "default": "mdi:calendar-heart" },
+      "messages_unread": { "default": "mdi:email-outline" },
+      "last_update": { "default": "mdi:clock-check-outline" },
+      "polling_mode": {
+        "default": "mdi:sync",
+        "state": {
+          "idle": "mdi:sleep",
+          "active": "mdi:sync",
+          "budget": "mdi:speedometer-slow",
+          "backoff": "mdi:sync-alert",
+          "paused": "mdi:pause-octagon-outline"
+        }
+      },
+      "api_requests_today": { "default": "mdi:cloud-upload-outline" }
+    },
+    "switch": {
+      "charging": { "default": "mdi:ev-station", "state": { "on": "mdi:battery-charging", "off": "mdi:pause-circle-outline" } },
+      "charge_schedule": { "default": "mdi:calendar-clock" },
+      "healthy_charging": { "default": "mdi:battery-heart-variant" },
+      "battery_preheat": { "default": "mdi:battery-heart-outline", "state": { "on": "mdi:heat-wave" } },
+      "steering_wheel_heat": { "default": "mdi:steering", "state": { "on": "mdi:steering" } },
+      "mirror_heat": { "default": "mdi:mirror-rectangle" },
+      "sentry_mode": { "default": "mdi:cctv-off", "state": { "on": "mdi:cctv" } }
+    },
+    "time": {
+      "charge_schedule_start": { "default": "mdi:clock-start" },
+      "charge_schedule_end": { "default": "mdi:clock-end" }
+    },
+    "update": {
+      "software": { "default": "mdi:update" }
+    }
+  },
+  "services": {
+    "refresh": { "service": "mdi:cloud-refresh-outline" },
+    "set_climate": { "service": "mdi:air-conditioner" },
+    "set_charge_schedule": { "service": "mdi:calendar-clock" },
+    "set_climate_schedule": { "service": "mdi:timer-cog-outline" },
+    "cancel_climate_schedule": { "service": "mdi:timer-off-outline" },
+    "prepare_car": { "service": "mdi:car-cog" },
+    "send_destination": { "service": "mdi:map-marker-path" },
+    "send_command": { "service": "mdi:console" }
+  }
+}

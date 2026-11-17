@@ -1,0 +1,838 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Leapmotor Cloud",
+        "description": "Connects Home Assistant to the Leapmotor cloud (unofficial). Leapmotor vehicles offer no local interface, all data and commands go through the manufacturer's cloud.",
+        "menu_options": {
+          "account": "Connect a Leapmotor account",
+          "demo": "Try a simulated vehicle (no account needed)"
+        }
+      },
+      "certificate": {
+        "title": "App certificate",
+        "description": "The Leapmotor cloud only accepts connections that present the client certificate of the official app. It is not part of this integration. Upload the certificate and its private key (PEM), or paste them. Alternatively put `app_cert.pem` and `app_key.pem` into the folder `{folder}`, then this step is skipped.",
+        "data": {
+          "cert_file": "Certificate (file)",
+          "key_file": "Private key (file)",
+          "cert_text": "Certificate (text)",
+          "key_text": "Private key (text)"
+        }
+      },
+      "credentials": {
+        "title": "Leapmotor account",
+        "description": "Sign in with the email address and password of your Leapmotor account.\n\n**Tip:** create a second Leapmotor account and share the vehicle with it in the app. Then Home Assistant never logs your phone out.\n\n{error}",
+        "data": {
+          "username": "Email address",
+          "password": "Password"
+        },
+        "sections": {
+          "advanced": {
+            "name": "Advanced",
+            "data": {
+              "base_url": "Server"
+            },
+            "data_description": {
+              "base_url": "Only change this if your region uses a different server."
+            }
+          }
+        }
+      },
+      "pin": {
+        "title": "Vehicle PIN",
+        "description": "Enter the PIN you use in the app for remote commands of **{vehicle}** (…{vin}). Home Assistant then uses it automatically whenever a command needs it. Without a PIN the vehicle stays read-only.",
+        "data": {
+          "pin": "PIN"
+        },
+        "data_description": {
+          "pin": "The PIN is checked once with the cloud and stored in Home Assistant."
+        }
+      },
+      "reauth_confirm": {
+        "title": "Sign in again",
+        "description": "The Leapmotor cloud rejected the password of {username}. Please enter the current password.\n\n{error}",
+        "data": {
+          "password": "Password"
+        }
+      },
+      "reconfigure": {
+        "title": "Change credentials",
+        "description": "Replace the password and/or the app certificate of {username}. Empty fields keep their value.\n\n{error}",
+        "data": {
+          "password": "New password",
+          "cert_file": "Certificate (file)",
+          "key_file": "Private key (file)",
+          "cert_text": "Certificate (text)",
+          "key_text": "Private key (text)"
+        }
+      }
+    },
+    "error": {
+      "invalid_certificate": "The certificate or the key is invalid, or they do not belong together.",
+      "certificate_required": "Please provide the certificate and its private key.",
+      "invalid_url": "Please enter an https address.",
+      "invalid_auth": "Email address or password is wrong.",
+      "certificate_rejected": "The server rejected the app certificate.",
+      "rate_limited": "Too many sign-in attempts. Please wait a few minutes.",
+      "cannot_connect": "The Leapmotor cloud cannot be reached.",
+      "unknown": "Unexpected error, see the log for details.",
+      "no_vehicles": "No vehicle is linked to this account.",
+      "invalid_pin": "The PIN was rejected."
+    },
+    "abort": {
+      "already_configured": "This account is already set up.",
+      "pin_attempts": "The PIN was rejected several times. Setup stopped so that remote control does not get locked.",
+      "reauth_successful": "Signed in again.",
+      "reconfigure_successful": "Credentials updated.",
+      "demo_not_configurable": "The simulated vehicle has no credentials."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Leapmotor Cloud",
+        "menu_options": {
+          "polling": "Polling intervals",
+          "pins": "Vehicle PINs",
+          "security": "Server certificate"
+        }
+      },
+      "polling": {
+        "title": "Polling intervals",
+        "description": "The cloud is only asked as often as needed. While a vehicle charges, drives, runs the air conditioning or was just used, the short interval applies, otherwise the long one. Asking too often can get the account locked.",
+        "data": {
+          "interval_active": "Interval while active",
+          "interval_idle": "Interval while idle",
+          "interval_history": "Interval for history and statistics",
+          "charger_power_entity": "Power sensor of the wallbox (optional)",
+          "charger_power_threshold": "Wallbox power threshold",
+          "daily_request_limit": "Maximum requests per day"
+        },
+        "data_description": {
+          "interval_active": "Charging, driving, air conditioning, or up to ten minutes after the vehicle was used.",
+          "interval_idle": "Parked and nothing happening.",
+          "charger_power_entity": "When the wallbox starts or stops delivering power, the vehicle is asked shortly afterwards. This gives fast updates without constant polling.",
+          "daily_request_limit": "Above this number the integration only asks once an hour until midnight."
+        }
+      },
+      "pins": {
+        "title": "Vehicle PIN",
+        "description": "PIN of **{vehicle}** (…{vin}). Stored: {status}. Leave the field empty to keep the stored PIN.",
+        "data": {
+          "pin": "New PIN",
+          "remove_pin": "Delete the stored PIN"
+        }
+      },
+      "security": {
+        "title": "Server certificate",
+        "description": "The Leapmotor server uses a certificate of a private certificate authority. The integration remembers the certificate during setup and afterwards only accepts that one (certificate pinning).",
+        "data": {
+          "tls_mode": "Verification"
+        }
+      }
+    },
+    "error": {
+      "idle_below_active": "The idle interval must be at least as long as the active interval.",
+      "invalid_pin": "The PIN was rejected."
+    },
+    "abort": {
+      "pin_attempts": "The PIN was rejected several times. Stopped so that remote control does not get locked.",
+      "not_loaded": "The integration is not running. Fix the connection first."
+    }
+  },
+  "selector": {
+    "tls_mode": {
+      "options": {
+        "auto": "Pinned certificate, accept regular renewals automatically (recommended)",
+        "strict": "Pinned certificate only, confirm every change",
+        "off": "No verification (not recommended)"
+      }
+    },
+    "climate_mode": {
+      "options": {
+        "heat": "Heat",
+        "cool": "Cool",
+        "fan": "Ventilate"
+      }
+    },
+    "seat_mode": {
+      "options": {
+        "off": "Off",
+        "heat": "Heating",
+        "ventilation": "Ventilation"
+      }
+    },
+    "weekday": {
+      "options": {
+        "mon": "Monday",
+        "tue": "Tuesday",
+        "wed": "Wednesday",
+        "thu": "Thursday",
+        "fri": "Friday",
+        "sat": "Saturday",
+        "sun": "Sunday"
+      }
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "plugged_in": {
+        "name": "Charging cable"
+      },
+      "charging": {
+        "name": "Charging"
+      },
+      "charge_completed": {
+        "name": "Charge completed"
+      },
+      "driving": {
+        "name": "Driving"
+      },
+      "doors": {
+        "name": "Doors"
+      },
+      "door_driver": {
+        "name": "Driver door"
+      },
+      "door_passenger": {
+        "name": "Passenger door"
+      },
+      "door_rear_left": {
+        "name": "Rear left door"
+      },
+      "door_rear_right": {
+        "name": "Rear right door"
+      },
+      "trunk": {
+        "name": "Tailgate"
+      },
+      "windows": {
+        "name": "Windows"
+      },
+      "window_driver": {
+        "name": "Driver window"
+      },
+      "window_passenger": {
+        "name": "Passenger window"
+      },
+      "window_rear_left": {
+        "name": "Rear left window"
+      },
+      "window_rear_right": {
+        "name": "Rear right window"
+      },
+      "climate_active": {
+        "name": "Air conditioning running"
+      },
+      "defrost": {
+        "name": "Windshield defrost"
+      },
+      "rear_window_heating": {
+        "name": "Rear window heating"
+      },
+      "battery_heating": {
+        "name": "Battery heating"
+      },
+      "tire_warning": {
+        "name": "Tire pressure warning"
+      },
+      "vehicle_ready": {
+        "name": "Ready to drive"
+      },
+      "parking_brake": {
+        "name": "Parking brake"
+      },
+      "alarm_armed": {
+        "name": "Alarm armed"
+      },
+      "cloud_connection": {
+        "name": "Cloud connection"
+      }
+    },
+    "button": {
+      "refresh": {
+        "name": "Refresh data"
+      },
+      "find_vehicle": {
+        "name": "Find vehicle"
+      },
+      "unlock_charger": {
+        "name": "Release charging connector"
+      },
+      "quick_cool": {
+        "name": "Quick cool"
+      },
+      "quick_heat": {
+        "name": "Quick heat"
+      },
+      "windshield_defrost": {
+        "name": "Defrost windshield"
+      }
+    },
+    "climate": {
+      "climate": {
+        "name": "Air conditioning",
+        "state_attributes": {
+          "preset_mode": {
+            "state": {
+              "none": "None",
+              "quick_cool": "Quick cool",
+              "quick_heat": "Quick heat",
+              "defrost": "Defrost"
+            }
+          }
+        }
+      }
+    },
+    "cover": {
+      "windows": {
+        "name": "Windows"
+      },
+      "sunshade": {
+        "name": "Sunshade"
+      },
+      "trunk": {
+        "name": "Tailgate"
+      }
+    },
+    "device_tracker": {
+      "location": {
+        "name": "Location"
+      }
+    },
+    "image": {
+      "picture": {
+        "name": "Picture"
+      }
+    },
+    "lock": {
+      "lock": {
+        "name": "Central locking"
+      }
+    },
+    "number": {
+      "charge_limit": {
+        "name": "Charge limit"
+      },
+      "battery_capacity": {
+        "name": "Usable battery capacity"
+      }
+    },
+    "select": {
+      "seat_heat_driver": {
+        "name": "Seat heating driver",
+        "state": {
+          "off": "Off",
+          "low": "Level 1",
+          "medium": "Level 2",
+          "high": "Level 3"
+        }
+      },
+      "seat_heat_passenger": {
+        "name": "Seat heating passenger",
+        "state": {
+          "off": "Off",
+          "low": "Level 1",
+          "medium": "Level 2",
+          "high": "Level 3"
+        }
+      },
+      "seat_ventilation_driver": {
+        "name": "Seat ventilation driver",
+        "state": {
+          "off": "Off",
+          "low": "Level 1",
+          "medium": "Level 2",
+          "high": "Level 3"
+        }
+      },
+      "seat_ventilation_passenger": {
+        "name": "Seat ventilation passenger",
+        "state": {
+          "off": "Off",
+          "low": "Level 1",
+          "medium": "Level 2",
+          "high": "Level 3"
+        }
+      },
+      "demo_scenario": {
+        "name": "Demo scenario",
+        "state": {
+          "charging_ac": "Charging (AC)",
+          "charging_dc": "Fast charging (DC)",
+          "plugged_in": "Plugged in",
+          "parked": "Parked",
+          "driving": "Driving",
+          "climate": "Air conditioning"
+        }
+      }
+    },
+    "sensor": {
+      "soc": {
+        "name": "State of charge"
+      },
+      "range": {
+        "name": "Range"
+      },
+      "range_max": {
+        "name": "Range at full charge"
+      },
+      "charging_state": {
+        "name": "Charging state",
+        "state": {
+          "unplugged": "Unplugged",
+          "plugged_in": "Plugged in",
+          "scheduled": "Scheduled",
+          "charging": "Charging",
+          "paused": "Paused",
+          "finished": "Finished"
+        }
+      },
+      "charging_power": {
+        "name": "Charging power"
+      },
+      "battery_power": {
+        "name": "Battery power"
+      },
+      "battery_current": {
+        "name": "Battery current"
+      },
+      "battery_voltage": {
+        "name": "Battery voltage"
+      },
+      "charge_time_remaining": {
+        "name": "Charging time remaining"
+      },
+      "charge_finish_time": {
+        "name": "Charging finished at"
+      },
+      "energy_to_limit": {
+        "name": "Energy to charge limit"
+      },
+      "battery_energy": {
+        "name": "Energy in battery"
+      },
+      "battery_temperature": {
+        "name": "Battery temperature"
+      },
+      "odometer": {
+        "name": "Odometer"
+      },
+      "speed": {
+        "name": "Speed"
+      },
+      "gear": {
+        "name": "Gear",
+        "state": {
+          "p": "P",
+          "r": "R",
+          "n": "N",
+          "d": "D"
+        }
+      },
+      "fuel_level": {
+        "name": "Fuel level"
+      },
+      "fuel_range": {
+        "name": "Fuel range"
+      },
+      "combined_range": {
+        "name": "Combined range"
+      },
+      "interior_temperature": {
+        "name": "Interior temperature"
+      },
+      "outdoor_temperature": {
+        "name": "Outdoor temperature"
+      },
+      "tire_pressure_fl": {
+        "name": "Tire pressure front left"
+      },
+      "tire_pressure_fr": {
+        "name": "Tire pressure front right"
+      },
+      "tire_pressure_rl": {
+        "name": "Tire pressure rear left"
+      },
+      "tire_pressure_rr": {
+        "name": "Tire pressure rear right"
+      },
+      "energy_today": {
+        "name": "Energy used today"
+      },
+      "energy_last_week": {
+        "name": "Energy used last week"
+      },
+      "total_energy": {
+        "name": "Energy used in total"
+      },
+      "mileage_7d": {
+        "name": "Distance last 7 days"
+      },
+      "energy_7d": {
+        "name": "Energy last 7 days"
+      },
+      "consumption_average": {
+        "name": "Average consumption"
+      },
+      "last_charge_energy": {
+        "name": "Last charge"
+      },
+      "last_charge_end": {
+        "name": "Last charge ended"
+      },
+      "delivery_days": {
+        "name": "Days since delivery"
+      },
+      "messages_unread": {
+        "name": "Unread messages"
+      },
+      "last_update": {
+        "name": "Last vehicle report"
+      },
+      "polling_mode": {
+        "name": "Polling mode",
+        "state": {
+          "idle": "Idle",
+          "active": "Active",
+          "budget": "Daily limit reached",
+          "backoff": "Waiting after error",
+          "paused": "Paused (protection)"
+        }
+      },
+      "api_requests_today": {
+        "name": "Cloud requests today"
+      }
+    },
+    "switch": {
+      "charging": {
+        "name": "Charging"
+      },
+      "charge_schedule": {
+        "name": "Charging schedule"
+      },
+      "healthy_charging": {
+        "name": "Battery care charging"
+      },
+      "battery_preheat": {
+        "name": "Battery preheating"
+      },
+      "steering_wheel_heat": {
+        "name": "Steering wheel heating"
+      },
+      "mirror_heat": {
+        "name": "Mirror heating"
+      },
+      "sentry_mode": {
+        "name": "Sentry mode"
+      }
+    },
+    "time": {
+      "charge_schedule_start": {
+        "name": "Charging schedule start"
+      },
+      "charge_schedule_end": {
+        "name": "Charging schedule end"
+      }
+    },
+    "update": {
+      "software": {
+        "name": "Vehicle software"
+      }
+    }
+  },
+  "exceptions": {
+    "unknown_vehicle": {
+      "message": "No Leapmotor vehicle found for …{vin}."
+    },
+    "pin_missing": {
+      "message": "No PIN is stored for this vehicle. Add it under Settings → Devices & services → Leapmotor Cloud → Configure → Vehicle PINs."
+    },
+    "pin_rejected": {
+      "message": "The stored vehicle PIN was rejected. To protect the vehicle from being locked it is not sent again. Correct it in the options of the integration."
+    },
+    "command_not_permitted": {
+      "message": "This account may not use the command: {error}"
+    },
+    "auth_failed": {
+      "message": "Signing in to Leapmotor failed. Please sign in again in the integration."
+    },
+    "rate_limited": {
+      "message": "The Leapmotor cloud is slowing down requests: {error}"
+    },
+    "cannot_connect": {
+      "message": "The Leapmotor cloud cannot be reached: {error}"
+    },
+    "command_failed": {
+      "message": "The command was rejected: {error}"
+    },
+    "command_unconfirmed": {
+      "message": "The command was sent, but the vehicle did not confirm it in time. It may be in deep sleep or without mobile reception."
+    },
+    "charge_plan_unsupported": {
+      "message": "On this model the charging schedule can only be changed in the vehicle or the app."
+    },
+    "charge_plan_incomplete": {
+      "message": "The current charging schedule is incomplete. Please give start and end time as well, so that nothing has to be guessed."
+    },
+    "not_plugged_in": {
+      "message": "The charging cable is not connected."
+    },
+    "device_required": {
+      "message": "There are several Leapmotor vehicles. Please select one."
+    },
+    "no_vehicles": {
+      "message": "No vehicle is linked to this account."
+    }
+  },
+  "issues": {
+    "server_certificate_changed": {
+      "title": "Leapmotor server presents a new certificate ({account})",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Trust the new certificate?",
+            "description": "The Leapmotor server now presents a different certificate than the one remembered during setup:\n\n- Fingerprint: `{fingerprint}`\n- Issued by: {issuer}\n- Valid until: {valid_until}\n\nThe remembered certificate was not about to expire, so the change is not accepted automatically. Until you decide, no data is sent to the server. Only confirm if you trust your network connection."
+          }
+        },
+        "abort": {
+          "not_available": "The certificate is no longer available. It will be shown again on the next connection attempt."
+        }
+      }
+    },
+    "pin_rejected": {
+      "title": "Vehicle PIN rejected ({vehicle})",
+      "description": "The Leapmotor cloud rejected the stored PIN of {vehicle}. To protect remote control from being locked, Home Assistant does not send it again. Enter the correct PIN under Settings → Devices & services → Leapmotor Cloud → Configure → Vehicle PINs."
+    },
+    "app_certificate_rejected": {
+      "title": "Leapmotor app certificate rejected ({account})",
+      "description": "The Leapmotor cloud no longer accepts the app certificate. Leapmotor may have replaced it with a new app version. Provide the current certificate under Settings → Devices & services → Leapmotor Cloud → ⋮ → Reconfigure."
+    },
+    "session_conflict": {
+      "title": "Leapmotor account is used elsewhere at the same time ({account})",
+      "description": "The cloud session ended several times within a short time, most likely because the same account is also signed in on a phone. To protect the account, Home Assistant pauses for two hours. Create a second Leapmotor account, share the vehicle with it in the app, and use that account in Home Assistant."
+    }
+  },
+  "services": {
+    "refresh": {
+      "name": "Refresh",
+      "description": "Asks the cloud for the current vehicle data now.",
+      "fields": {
+        "device_id": {
+          "name": "Vehicle",
+          "description": "Only needed when there are several vehicles."
+        }
+      }
+    },
+    "set_climate": {
+      "name": "Set air conditioning",
+      "description": "Switches the air conditioning on with the given settings.",
+      "fields": {
+        "device_id": {
+          "name": "Vehicle",
+          "description": "Only needed when there are several vehicles."
+        },
+        "mode": {
+          "name": "Mode",
+          "description": "Heat, cool or only ventilate."
+        },
+        "temperature": {
+          "name": "Temperature",
+          "description": "Target cabin temperature."
+        },
+        "fan_level": {
+          "name": "Fan level",
+          "description": "1 (low) to 7 (high)."
+        },
+        "recirculate": {
+          "name": "Recirculation",
+          "description": "Recirculate the cabin air instead of fresh air."
+        },
+        "defrost": {
+          "name": "Defrost",
+          "description": "Also defrost the windshield."
+        }
+      }
+    },
+    "set_charge_schedule": {
+      "name": "Set charging schedule",
+      "description": "Changes the charging schedule and/or the charge limit. Values that are not given stay as they are.",
+      "fields": {
+        "device_id": {
+          "name": "Vehicle",
+          "description": "Only needed when there are several vehicles."
+        },
+        "enabled": {
+          "name": "Enabled",
+          "description": "Charge only within the time window."
+        },
+        "start": {
+          "name": "Start",
+          "description": "Start of the charging window."
+        },
+        "end": {
+          "name": "End",
+          "description": "End of the charging window."
+        },
+        "limit": {
+          "name": "Charge limit",
+          "description": "Stop charging at this state of charge."
+        }
+      }
+    },
+    "set_climate_schedule": {
+      "name": "Set climate timer",
+      "description": "Replaces the climate timers of the vehicle with a single one.",
+      "fields": {
+        "device_id": {
+          "name": "Vehicle",
+          "description": "Only needed when there are several vehicles."
+        },
+        "start_time": {
+          "name": "Start time",
+          "description": "When the air conditioning starts (local time)."
+        },
+        "days": {
+          "name": "Repeat on",
+          "description": "Weekdays to repeat on. Empty means once."
+        },
+        "mode": {
+          "name": "Mode",
+          "description": "Heat, cool or only ventilate."
+        },
+        "temperature": {
+          "name": "Temperature",
+          "description": "Target cabin temperature."
+        },
+        "fan_level": {
+          "name": "Fan level",
+          "description": "1 (low) to 7 (high)."
+        },
+        "recirculate": {
+          "name": "Recirculation",
+          "description": "Recirculate the cabin air instead of fresh air."
+        },
+        "defrost": {
+          "name": "Defrost",
+          "description": "Also defrost the windshield."
+        }
+      }
+    },
+    "cancel_climate_schedule": {
+      "name": "Cancel climate timers",
+      "description": "Removes all climate timers of the vehicle.",
+      "fields": {
+        "device_id": {
+          "name": "Vehicle",
+          "description": "Only needed when there are several vehicles."
+        }
+      }
+    },
+    "prepare_car": {
+      "name": "Prepare vehicle",
+      "description": "Prepares the vehicle in one go: air conditioning, seats, steering wheel and mirrors.",
+      "fields": {
+        "device_id": {
+          "name": "Vehicle",
+          "description": "Only needed when there are several vehicles."
+        },
+        "climate": {
+          "name": "Air conditioning",
+          "description": "Also switch on the air conditioning."
+        },
+        "mode": {
+          "name": "Mode",
+          "description": "Heat, cool or only ventilate."
+        },
+        "temperature": {
+          "name": "Temperature",
+          "description": "Target cabin temperature."
+        },
+        "fan_level": {
+          "name": "Fan level",
+          "description": "1 (low) to 7 (high)."
+        },
+        "recirculate": {
+          "name": "Recirculation",
+          "description": "Recirculate the cabin air instead of fresh air."
+        },
+        "defrost": {
+          "name": "Defrost",
+          "description": "Also defrost the windshield."
+        },
+        "driver_seat": {
+          "name": "Driver seat",
+          "description": "Heat or ventilate the driver seat."
+        },
+        "driver_seat_level": {
+          "name": "Driver seat level",
+          "description": "1 to 3."
+        },
+        "passenger_seat": {
+          "name": "Passenger seat",
+          "description": "Heat or ventilate the passenger seat."
+        },
+        "passenger_seat_level": {
+          "name": "Passenger seat level",
+          "description": "1 to 3."
+        },
+        "steering_wheel": {
+          "name": "Steering wheel heating",
+          "description": "Heat the steering wheel."
+        },
+        "mirrors": {
+          "name": "Mirror heating",
+          "description": "Heat the exterior mirrors."
+        }
+      }
+    },
+    "send_destination": {
+      "name": "Send destination",
+      "description": "Sends a destination to the navigation of the vehicle. Needs no PIN.",
+      "fields": {
+        "device_id": {
+          "name": "Vehicle",
+          "description": "Only needed when there are several vehicles."
+        },
+        "name": {
+          "name": "Name",
+          "description": "Name of the destination."
+        },
+        "latitude": {
+          "name": "Latitude",
+          "description": "Latitude of the destination."
+        },
+        "longitude": {
+          "name": "Longitude",
+          "description": "Longitude of the destination."
+        },
+        "address": {
+          "name": "Address",
+          "description": "Address shown in the vehicle."
+        }
+      }
+    },
+    "send_command": {
+      "name": "Send raw command",
+      "description": "Sends a remote command by its numeric id. For experiments with functions the integration does not cover yet. Use with care.",
+      "fields": {
+        "device_id": {
+          "name": "Vehicle",
+          "description": "Only needed when there are several vehicles."
+        },
+        "command_id": {
+          "name": "Command id",
+          "description": "Numeric id of the command, e.g. 120 for \"find vehicle\"."
+        },
+        "content": {
+          "name": "Content",
+          "description": "JSON payload of the command."
+        },
+        "use_pin": {
+          "name": "Use PIN",
+          "description": "Send the stored vehicle PIN with the command."
+        }
+      }
+    }
+  }
+}

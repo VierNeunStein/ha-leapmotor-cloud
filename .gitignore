@@ -1,0 +1,24 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+.claude/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Never commit certificates, keys or captured data.
+*.pem
+*.key
+*.crt
+*.cer
+*.p12
+*.pfx
+*.har
+*.log

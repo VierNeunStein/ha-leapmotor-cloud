@@ -1,0 +1,74 @@
+name: Validate
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: "0 4 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  hassfest:
+    name: Hassfest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: home-assistant/actions/hassfest@master
+
+  hacs:
+    name: HACS
+    runs-on: ubuntu-latest
+    steps:
+      - uses: hacs/action@main
+        with:
+          category: integration
+          ignore: brands
+
+  client-tests:
+    name: Client tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+      - run: pip install pytest pytest-asyncio aiohttp cryptography
+      - run: pytest tests --ignore=tests/ha -q
+
+  ha-tests:
+    name: Home Assistant tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+      - run: pip install pytest-homeassistant-custom-component
+      - run: pytest tests/ha -q
+
+  frontend:
+    name: Frontend syntax
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: node --check custom_components/leapmotor_cloud/frontend/leapmotor-cloud.js
+
+  secrets:
+    name: No secrets committed
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Look for keys and certificates
+        run: |
+          if grep -RIlE 'BEGIN (RSA |EC )?PRIVATE KEY|BEGIN CERTIFICATE' --exclude-dir=.git --exclude-dir=.github .; then
+            echo "Certificate or key material found" && exit 1
+          fi
+          if find . -path ./.git -prune -o \( -name '*.pem' -o -name '*.key' -o -name '*.p12' -o -name '*.crt' \) -print | grep .; then
+            echo "Certificate files found" && exit 1
+          fi

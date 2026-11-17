@@ -1,0 +1,171 @@
+blueprint:
+  name: Leapmotor – charge with solar surplus
+  description: >-
+    Starts charging when there is enough PV surplus and stops it when the house
+    draws too much power from the grid. Every command goes through the
+    Leapmotor cloud to the vehicle, so a minimum time between two commands
+    protects the account and the car from rapid switching.
+    Needs the integration Leapmotor Cloud and a sensor for the grid power
+    (positive = feeding into the grid).
+  domain: automation
+  source_url: https://github.com/VierNeunStein/ha-leapmotor-cloud/blob/main/blueprints/automation/leapmotor_cloud/solar_charging.yaml
+  input:
+    charging_switch:
+      name: Charging switch
+      description: The "Charging" switch of the vehicle.
+      selector:
+        entity:
+          filter:
+            - integration: leapmotor_cloud
+              domain: switch
+    plugged_sensor:
+      name: Charging cable
+      description: The "Charging cable" binary sensor of the vehicle.
+      selector:
+        entity:
+          filter:
+            - integration: leapmotor_cloud
+              domain: binary_sensor
+              device_class: plug
+    soc_sensor:
+      name: State of charge
+      selector:
+        entity:
+          filter:
+            - integration: leapmotor_cloud
+              domain: sensor
+              device_class: battery
+    grid_sensor:
+      name: Grid power
+      description: >-
+        Power exchanged with the grid in W. Positive values mean feeding in
+        (surplus), negative values mean drawing from the grid. Use a template
+        sensor if your meter uses the opposite sign.
+      selector:
+        entity:
+          filter:
+            - domain: sensor
+              device_class: power
+    start_surplus:
+      name: Start at a surplus of
+      description: About 1400 W per phase and 6 A; 4200 W for three phases.
+      default: 4200
+      selector:
+        number:
+          min: 500
+          max: 22000
+          step: 100
+          unit_of_measurement: W
+    start_minutes:
+      name: Surplus must last
+      default: 5
+      selector:
+        number:
+          min: 1
+          max: 60
+          unit_of_measurement: min
+    max_import:
+      name: Stop at a grid draw of
+      default: 1500
+      selector:
+        number:
+          min: 0
+          max: 22000
+          step: 100
+          unit_of_measurement: W
+    stop_minutes:
+      name: Grid draw must last
+      default: 10
+      selector:
+        number:
+          min: 1
+          max: 60
+          unit_of_measurement: min
+    max_soc:
+      name: Use surplus up to
+      description: Above this state of charge no charging is started.
+      default: 90
+      selector:
+        number:
+          min: 20
+          max: 100
+          unit_of_measurement: "%"
+    min_pause:
+      name: Minimum time between commands
+      default: 15
+      selector:
+        number:
+          min: 5
+          max: 120
+          unit_of_measurement: min
+
+mode: single
+max_exceeded: silent
+
+trigger_variables:
+  grid: !input grid_sensor
+  import_limit: !input max_import
+
+triggers:
+  - trigger: numeric_state
+    entity_id: !input grid_sensor
+    above: !input start_surplus
+    for:
+      minutes: !input start_minutes
+    id: start
+  - trigger: state
+    entity_id: !input plugged_sensor
+    to: "on"
+    for:
+      minutes: 2
+    id: start
+  - trigger: template
+    value_template: "{{ states(grid) | float(0) < -(import_limit | float(0)) }}"
+    for:
+      minutes: !input stop_minutes
+    id: stop
+
+variables:
+  charging_switch: !input charging_switch
+  soc_sensor: !input soc_sensor
+  grid_sensor: !input grid_sensor
+  start_surplus: !input start_surplus
+  max_soc: !input max_soc
+  min_pause: !input min_pause
+  rested: >-
+    {{ states[charging_switch] is not none and
+       (now() - states[charging_switch].last_changed).total_seconds() > min_pause | float * 60 }}
+
+actions:
+  - choose:
+      - conditions:
+          - condition: trigger
+            id: start
+          - condition: state
+            entity_id: !input plugged_sensor
+            state: "on"
+          - condition: state
+            entity_id: !input charging_switch
+            state: "off"
+          - condition: template
+            value_template: "{{ states(soc_sensor) | float(100) < max_soc | float }}"
+          - condition: template
+            value_template: "{{ states(grid_sensor) | float(0) >= start_surplus | float }}"
+          - condition: template
+            value_template: "{{ rested }}"
+        sequence:
+          - action: switch.turn_on
+            target:
+              entity_id: !input charging_switch
+      - conditions:
+          - condition: trigger
+            id: stop
+          - condition: state
+            entity_id: !input charging_switch
+            state: "on"
+          - condition: template
+            value_template: "{{ rested }}"
+        sequence:
+          - action: switch.turn_off
+            target:
+              entity_id: !input charging_switch
